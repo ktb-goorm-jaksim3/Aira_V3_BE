@@ -24,9 +24,14 @@ def register(user: user_schema.UserCreate, db: Session):
     # Return a response that matches the UserResponse schema
     return user_schema.UserResponse(id=db_user.id, username=db_user.username, email=db_user.email)
 
-def login(user: user_schema.UserCreate, db: Session):
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if not db_user or not verify_password(user.password, db_user.hashed_password):
+def login(user: user_schema.UserLogin, db: Session):
+    print(f"Login attempt with username: {user.username}")  # email -> username으로 변경
+    db_user = db.query(User).filter(User.email == user.username).first()  # email 필드로 검색
+    if not db_user:
+        print("User not found")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not verify_password(user.password, db_user.hashed_password):
+        print("Invalid password")
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     access_token = create_access_token(data={"sub": db_user.username})

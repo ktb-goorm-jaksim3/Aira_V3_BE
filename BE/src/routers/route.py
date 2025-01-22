@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, FastAPI
+from fastapi import APIRouter, Depends, FastAPI, Request
 from sqlalchemy.orm import Session
 from service.chat import generate_text
 from service.health import health_check_service
@@ -26,7 +26,11 @@ async def register_route(user: user_schema.UserCreate, db: Session = Depends(get
     return register(user, db)
 
 @router.post("/auth/login", response_model=user_schema.Token)
-async def login_route(user: user_schema.UserCreate, db: Session = Depends(get_db)):
+async def login_route(request: Request, user: user_schema.UserLogin, db: Session = Depends(get_db)):
+    # 요청 바디 전체를 로깅
+    body = await request.body()
+    print("Raw request body:", body)
+    print("Parsed user data:", user.dict())
     return login(user, db)
 
 @router.get("/health")
