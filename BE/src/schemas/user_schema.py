@@ -8,13 +8,9 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
-class UserResponse(BaseModel):
-    id: int
-    username: str
+class UserLogin(BaseModel):
     email: EmailStr
-    
-    class Config:
-        orm_mode = True
+    password: str
 
 class Token(BaseModel):
     access_token: str
@@ -23,6 +19,10 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
 
-class UserLogin(BaseModel):
-    username: EmailStr
-    password: str
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    
+    class Config:
+        orm_mode = True

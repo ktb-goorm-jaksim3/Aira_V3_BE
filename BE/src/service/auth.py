@@ -25,8 +25,8 @@ def register(user: user_schema.UserCreate, db: Session):
     return user_schema.UserResponse(id=db_user.id, username=db_user.username, email=db_user.email)
 
 def login(user: user_schema.UserLogin, db: Session):
-    print(f"Login attempt with username: {user.username}")  # email -> username으로 변경
-    db_user = db.query(User).filter(User.email == user.username).first()  # email 필드로 검색
+    print(f"Login attempt with email: {user.email}")
+    db_user = db.query(User).filter(User.email == user.email).first()
     if not db_user:
         print("User not found")
         raise HTTPException(status_code=401, detail="Invalid credentials")
