@@ -21,9 +21,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 async def generate_text_route(request: ChatRequest):
     return generate_text(request)
 
-@router.get("/me")
-async def read_user_me_route(token: str, db: Session = Depends(get_db)):
-    return read_users_me(token, db)
+# @router.get("/me")
+# async def read_user_me_route(token: str, db: Session = Depends(get_db)):
+#     return read_users_me(token, db)
 
 @router.post("/auth/register", response_model=user_schema.UserResponse)
 async def register_route(user: user_schema.UserCreate, db: Session = Depends(get_db)):
@@ -46,7 +46,7 @@ async def load_heavy_route():
     return load_heavy_service()
 
 @router.get("/auth/me", response_model=user_schema.UserResponse)
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def read_user_me_route(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
