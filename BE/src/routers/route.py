@@ -4,12 +4,14 @@ from service.chat import generate_text
 from service.health import health_check_service
 from service.load import load_heavy_service
 from service.auth import read_users_me, register, login
+from service.answer import save_answers
 from db.database import get_db
 from schemas import user_schema
 from models.chat import ChatRequest
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
+from schemas.answer_schema import AnswerCreate, AnswerResponse
 
 app = FastAPI()
 
@@ -58,7 +60,8 @@ async def read_user_me_route(token: str = Depends(oauth2_scheme), db: Session = 
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT Error: {str(e)}")  # 오류 로그 추가
         raise credentials_exception
         
     user = db.query(User).filter(User.username == username).first()
@@ -66,6 +69,14 @@ async def read_user_me_route(token: str = Depends(oauth2_scheme), db: Session = 
         raise credentials_exception
         
     return user
+
+@router.post("/questions/submit", response_model=AnswerResponse)
+async def submit_answers(answer: AnswerCreate, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    user = read_users_me(token, db)
+    return save_answers(answer, db, user.id)
+
+# 라우터 등록
+app.include_router(router)
 
 app.add_middleware(
     CORSMiddleware,

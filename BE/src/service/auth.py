@@ -43,7 +43,8 @@ def read_users_me(token: str, db: Session):
         username = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid token")
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT Error: {str(e)}")  # 오류 로그 추가
         raise HTTPException(status_code=401, detail="Invalid token")
 
     user = db.query(User).filter(User.username == username).first()
