@@ -72,8 +72,10 @@ async def read_user_me_route(token: str = Depends(oauth2_scheme), db: Session = 
 
 @router.post("/questions/submit", response_model=AnswerResponse)
 async def submit_answers(answer: AnswerCreate, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    user = read_users_me(token, db)
-    return save_answers(answer, db, user.id)
+    user = read_users_me(token, db)  # 사용자 정보 가져오기
+    if user is None:
+        raise HTTPException(status_code=401, detail="Invalid credentials")  # 사용자 정보가 없을 경우
+    return save_answers(answer, db, user.id)  # 사용자 ID를 사용하여 답변 저장
 
 # 라우터 등록
 app.include_router(router)
