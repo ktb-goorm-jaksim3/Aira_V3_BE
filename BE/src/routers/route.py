@@ -7,7 +7,7 @@ from service.auth import read_users_me, register, login
 from service.answer import save_answers
 from db.database import get_db
 from schemas import user_schema
-from models.chat import ChatRequest
+from models.chat import ChatRequest, ChatResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
@@ -19,9 +19,17 @@ router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-@router.post("/generate/")
-async def generate_text_route(request: ChatRequest):
-    return generate_text(request)
+@router.post("/generate/", response_model=ChatResponse)
+async def generate_response(chat_request: ChatRequest):
+    # print(f"Received request: {chat_request}")  # 로그 추가
+    try:
+        # ChatRequest 객체를 바로 전달하도록 수정
+        response = await generate_text(chat_request)  # chat_request 전체 객체 전달
+        return response
+    except Exception as e:
+        # print(f"❌ OpenAI API 호출 실패: {str(e)}")  # 에러 메시지 출력
+        raise HTTPException(status_code=500, detail=f"OpenAI API 호출 실패: {str(e)}")
+
 
 # @router.get("/me")
 # async def read_user_me_route(token: str, db: Session = Depends(get_db)):
@@ -76,6 +84,8 @@ async def submit_answers(answer: AnswerCreate, db: Session = Depends(get_db), to
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid credentials")  # 사용자 정보가 없을 경우
     return save_answers(answer, db, user.id)  # 사용자 ID를 사용하여 답변 저장
+
+
 
 # 라우터 등록
 app.include_router(router)
