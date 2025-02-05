@@ -11,8 +11,7 @@ client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 async def generate_text(chat_request: ChatRequest) -> ChatResponse:
     try:
-        # print(f"📡 OpenAI API 호출: {chat_request}")  # 요청 데이터 출력
-
+        
         response = client.chat.completions.create(
             model="gpt-4",  # gpt-4 또는 gpt-3.5-turbo
             messages=[
@@ -25,9 +24,9 @@ async def generate_text(chat_request: ChatRequest) -> ChatResponse:
 
         # 응답 데이터 변환
         response_text = response.choices[0].message.content
-        # print(f"✅ OpenAI API 응답: {response_text}")  # 응답 내용 출력
+      
 
         return ChatResponse(response=response_text)
     except Exception as e:
-        # print(f"❌ OpenAI API 호출 실패: {str(e)}")  # 에러 메시지 출력
+        
         raise ValueError(f"OpenAI API 호출 실패: {str(e)}")
