@@ -8,7 +8,6 @@ import utils
 
 def register(user: user_schema.UserCreate, db: Session):
 
-    print(f"Received user data: {user}") #예외 처리
     # 사용자 중복 확인
     if db.query(User).filter(User.username == user.username).first():
         raise HTTPException(status_code=400, detail="Username already registered")

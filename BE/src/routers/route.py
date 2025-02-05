@@ -21,13 +21,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 @router.post("/generate/", response_model=ChatResponse)
 async def generate_response(chat_request: ChatRequest):
-    # print(f"Received request: {chat_request}")  # 로그 추가
+    
     try:
         # ChatRequest 객체를 바로 전달하도록 수정
         response = await generate_text(chat_request)  # chat_request 전체 객체 전달
         return response
     except Exception as e:
-        # print(f"❌ OpenAI API 호출 실패: {str(e)}")  # 에러 메시지 출력
+      
         raise HTTPException(status_code=500, detail=f"OpenAI API 호출 실패: {str(e)}")
 
 
@@ -43,8 +43,6 @@ async def register_route(user: user_schema.UserCreate, db: Session = Depends(get
 async def login_route(request: Request, user: user_schema.UserLogin, db: Session = Depends(get_db)):
     # 요청 바디 전체를 로깅
     body = await request.body()
-    print("Raw request body:", body)
-    print("Parsed user data:", user.dict())
     return login(user, db)
 
 @router.get("/health")
