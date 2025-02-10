@@ -8,7 +8,6 @@ import utils
 
 def register(user: user_schema.UserCreate, db: Session):
 
-    print(f"Received user data: {user}") #예외 처리
     # 사용자 중복 확인
     if db.query(User).filter(User.username == user.username).first():
         raise HTTPException(status_code=400, detail="Username already registered")
@@ -43,7 +42,8 @@ def read_users_me(token: str, db: Session):
         username = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid token")
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT Error: {str(e)}")  # 오류 로그 추가
         raise HTTPException(status_code=401, detail="Invalid token")
 
     user = db.query(User).filter(User.username == username).first()

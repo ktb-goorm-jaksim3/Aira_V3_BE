@@ -4,12 +4,14 @@ from service.chat import generate_text
 from service.health import health_check_service
 from service.load import load_heavy_service
 from service.auth import read_users_me, register, login
+from service.answer import save_answers
 from db.database import get_db
 from schemas import user_schema
-from models.chat import ChatRequest
+from models.chat import ChatRequest, ChatResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
+from schemas.answer_schema import AnswerCreate, AnswerResponse
 
 app = FastAPI()
 
@@ -17,9 +19,17 @@ router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-@router.post("/generate/")
-async def generate_text_route(request: ChatRequest):
-    return generate_text(request)
+@router.post("/generate/", response_model=ChatResponse)
+async def generate_response(chat_request: ChatRequest):
+    
+    try:
+        # ChatRequest 객체를 바로 전달하도록 수정
+        response = await generate_text(chat_request)  # chat_request 전체 객체 전달
+        return response
+    except Exception as e:
+      
+        raise HTTPException(status_code=500, detail=f"OpenAI API 호출 실패: {str(e)}")
+
 
 # @router.get("/me")
 # async def read_user_me_route(token: str, db: Session = Depends(get_db)):
@@ -33,8 +43,6 @@ async def register_route(user: user_schema.UserCreate, db: Session = Depends(get
 async def login_route(request: Request, user: user_schema.UserLogin, db: Session = Depends(get_db)):
     # 요청 바디 전체를 로깅
     body = await request.body()
-    print("Raw request body:", body)
-    print("Parsed user data:", user.dict())
     return login(user, db)
 
 @router.get("/health")
@@ -58,7 +66,8 @@ async def read_user_me_route(token: str = Depends(oauth2_scheme), db: Session = 
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT Error: {str(e)}")  # 오류 로그 추가
         raise credentials_exception
         
     user = db.query(User).filter(User.username == username).first()
@@ -66,6 +75,18 @@ async def read_user_me_route(token: str = Depends(oauth2_scheme), db: Session = 
         raise credentials_exception
         
     return user
+
+@router.post("/questions/submit", response_model=AnswerResponse)
+async def submit_answers(answer: AnswerCreate, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    user = read_users_me(token, db)  # 사용자 정보 가져오기
+    if user is None:
+        raise HTTPException(status_code=401, detail="Invalid credentials")  # 사용자 정보가 없을 경우
+    return save_answers(answer, db, user.id)  # 사용자 ID를 사용하여 답변 저장
+
+
+
+# 라우터 등록
+app.include_router(router)
 
 app.add_middleware(
     CORSMiddleware,
