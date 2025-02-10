@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:730335258114:task-definition/be-ecs-task-definition:11",
+    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:730335258114:task-definition/be-ecs-task-definition:13",
     "containerDefinitions": [
         {
             "name": "backend",
@@ -66,6 +66,7 @@
             "cpu": 0,
             "portMappings": [
                 {
+                    "name": "db-3306-tcp",
                     "containerPort": 3306,
                     "hostPort": 3306,
                     "protocol": "tcp"
@@ -115,13 +116,18 @@
     "taskRoleArn": "arn:aws:iam::730335258114:role/ECSTaskExecutionRole",
     "executionRoleArn": "arn:aws:iam::730335258114:role/ECSTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 11,
+    "revision": 13,
     "volumes": [
         {
             "name": "db-efs-volume",
             "efsVolumeConfiguration": {
-                "fileSystemId": "fs-06234602bdff987f8",
-                "rootDirectory": "/"
+                "fileSystemId": "fs-0cd8c0d4546176719",
+                "rootDirectory": "/",
+                "transitEncryption": "ENABLED",
+                "authorizationConfig": {
+                    "accessPointId": "fsap-0528f3f98b436e9f5",
+                    "iam": "DISABLED"
+                }
             }
         }
     ],
@@ -190,8 +196,8 @@
         "cpuArchitecture": "ARM64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2025-02-05T08:37:00.050Z",
-    "registeredBy": "arn:aws:iam::730335258114:root",
+    "registeredAt": "2025-02-06T13:56:19.990Z",
+    "registeredBy": "arn:aws:iam::730335258114:user/YoungBum_Lee",
     "enableFaultInjection": false,
     "tags": []
 }
