@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:730335258114:task-definition/be-ecs-task-definition:13",
+    "taskDefinitionArn": "arn:aws:ecs:ap-northeast-2:730335258114:task-definition/be-ecs-task-definition:14",
     "containerDefinitions": [
         {
             "name": "backend",
@@ -116,7 +116,7 @@
     "taskRoleArn": "arn:aws:iam::730335258114:role/ECSTaskExecutionRole",
     "executionRoleArn": "arn:aws:iam::730335258114:role/ECSTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 13,
+    "revision": 14,
     "volumes": [
         {
             "name": "db-efs-volume",
@@ -196,8 +196,7 @@
         "cpuArchitecture": "ARM64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2025-02-06T13:56:19.990Z",
-    "registeredBy": "arn:aws:iam::730335258114:user/YoungBum_Lee",
-    "enableFaultInjection": false,
+    "registeredAt": "2025-02-10T04:40:15.295Z",
+    "registeredBy": "arn:aws:iam::730335258114:user/CICD_Pipeline_User",
     "tags": []
 }
