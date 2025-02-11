@@ -32,6 +32,7 @@ jobs:
         pip install -r src/requirements.txt
         pip install python-dotenv
         pip install pymysql
+        pip install flake8
 
     - name: Run Flake8 (Linting)  # 코드 스타일 검사 (Flake8)
       run: |
