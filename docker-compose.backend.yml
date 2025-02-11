@@ -17,6 +17,8 @@ services:
     # 로컬 테스트를 위한 네트워크 설정
     networks:
       - Aira_shared_local_network
+    # CI test를 위함
+    command: pytest BE/src/tests/
 
   db:
     image: mysql:8.0
