@@ -29,7 +29,7 @@ jobs:
         python -m venv venv
         source venv/bin/activate
         pip install -r BE/src/requirements.txt
-        pip install python-dotenv pymysql flake8
+        pip install python-dotenv pymysql flake8 pytest
 
     - name: Run Flake8 (Linting)
       run: |
@@ -39,7 +39,7 @@ jobs:
     - name: Run Pytest (Backend Tests)
       run: |
         source venv/bin/activate
-        pytest BE/src/tests --junitxml=BE/backend-test-results.xml
+        pytest tests/ --junitxml=backend-test-results.xml  # ✅ 테스트 결과 저장
 
     - name: Upload backend test results
       uses: actions/upload-artifact@v4
