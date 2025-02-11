@@ -24,12 +24,16 @@ jobs:
         python-version: "3.10"
         cache: "pip"
 
-    - name: Install dependencies  # Python 패키지 설치
+    - name: Create and activate virtual environment
       run: |
-        cd BE
         python -m venv venv
         source venv/bin/activate
-        pip install -r src/requirements.txt
+
+    - name: Install dependencies  # Python 패키지 설치
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install -r BE/src/requirements.txt
         pip install python-dotenv
         pip install pymysql
         pip install flake8
