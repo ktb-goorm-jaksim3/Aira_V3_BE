@@ -39,7 +39,7 @@ jobs:
     - name: Run Pytest (Backend Tests)
       run: |
         source venv/bin/activate
-        pytest tests/ --junitxml=backend-test-results.xml  # ✅ 테스트 결과 저장
+        pytest /BE/src/tests/ --junitxml=backend-test-results.xml  # ✅ 테스트 결과 저장
 
     - name: Upload backend test results
       uses: actions/upload-artifact@v4
