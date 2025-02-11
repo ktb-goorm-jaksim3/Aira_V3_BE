@@ -1,0 +1,71 @@
+name: Backend CI (FastAPI or Django)
+
+on:
+  push:
+    branches: [ "dev" ]  # dev 브랜치에서 푸시될 때 실행
+  pull_request:
+    branches: [ "main" ] # main 브랜치로 PR이 올라오면 실행
+
+permissions:
+  contents: read
+
+jobs:
+  backend-ci:
+    name: Backend CI (Python)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code  # GitHub에서 코드 다운로드
+      uses: actions/checkout@v4
+
+    - name: Set up Python  # Python 3.10 환경 설정
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+        cache: "pip"
+
+    - name: Install dependencies  # Python 패키지 설치
+      run: |
+        cd BE
+        python -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+        pip install python-dotenv
+        pip install pymysql
+
+    - name: Run Flake8 (Linting)  # 코드 스타일 검사 (Flake8)
+      run: |
+        cd BE
+        source venv/bin/activate
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Run tests  # 백엔드 유닛 테스트 실행 (pytest)
+      run: |
+        cd BE
+        source venv/bin/activate
+        pytest --junitxml=backend-test-results.xml
+
+    - name: Run Pytest (Backend Tests)
+      run: |
+        cd BE
+        source venv/bin/activate
+        pytest tests/
+        
+    - name: Upload backend test results  # 테스트 결과 업로드
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-test-results
+        path: BE/backend-test-results.xml
+
+    - name: Comment on Pull Request
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: "✅ Backend CI 완료: Lint, 테스트 성공!"
+          })
