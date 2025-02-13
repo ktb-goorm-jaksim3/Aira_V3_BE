@@ -14,3 +14,5 @@ pydantic[email]
 mysql-connector-python
 pymysql
 mysqlclient
+flake8 # 린트 도구
+pytest

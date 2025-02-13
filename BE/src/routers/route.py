@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, FastAPI, Request, HTTPException
 from sqlalchemy.orm import Session
 from service.chat import generate_text
@@ -12,6 +13,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from schemas.answer_schema import AnswerCreate, AnswerResponse
+from dotenv import load_dotenv
+from models.user import User  # User 모델 임포트 추가
+
+# .env 파일 로드
+load_dotenv()
+
+# 환경 변수에서 SECRET_KEY 및 ALGORITHM 가져오기
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 
 app = FastAPI()
 
@@ -21,19 +31,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 @router.post("/generate/", response_model=ChatResponse)
 async def generate_response(chat_request: ChatRequest):
-    
     try:
         # ChatRequest 객체를 바로 전달하도록 수정
         response = await generate_text(chat_request)  # chat_request 전체 객체 전달
         return response
     except Exception as e:
-      
         raise HTTPException(status_code=500, detail=f"OpenAI API 호출 실패: {str(e)}")
 
-
-# @router.get("/me")
-# async def read_user_me_route(token: str, db: Session = Depends(get_db)):
-#     return read_users_me(token, db)
 
 @router.post("/auth/register", response_model=user_schema.UserResponse)
 async def register_route(user: user_schema.UserCreate, db: Session = Depends(get_db)):
@@ -82,7 +86,6 @@ async def submit_answers(answer: AnswerCreate, db: Session = Depends(get_db), to
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid credentials")  # 사용자 정보가 없을 경우
     return save_answers(answer, db, user.id)  # 사용자 ID를 사용하여 답변 저장
-
 
 
 # 라우터 등록
