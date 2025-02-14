@@ -23,7 +23,6 @@ load_dotenv()
 # 환경 변수에서 SECRET_KEY 및 ALGORITHM 가져오기
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-GPT_WORKER_URL = os.getenv("GPT_WORKER_URL", "http://gpt-worker:9000")
 
 app = FastAPI()
 
@@ -32,7 +31,7 @@ router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 @router.post("/generate/", response_model=ChatResponse)
-async def generate_response(chat_request: ChatRequest):
+async def generate_endpoint(chat_request: ChatRequest):
     try:
         # GPT Worker로 요청을 전달
         response = await generate_text(chat_request)

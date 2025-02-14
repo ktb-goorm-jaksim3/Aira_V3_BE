@@ -7,8 +7,6 @@ services:
       - "8000:8000"
     env_file:
       - ./BE/src/.env
-    environment:
-      - GPT_WORKER_URL=http://gpt-worker:9000  # ✅ GPT Worker URL 추가
     volumes:
       - ./BE/src:/app/src  # ✅ 정확한 경로로 수정
     depends_on:
