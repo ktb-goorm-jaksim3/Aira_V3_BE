@@ -1,32 +1,26 @@
-from models.chat import ChatRequest, ChatResponse
-import openai
 import os
-from dotenv import load_dotenv
+import requests
+from models.chat import ChatRequest
+from fastapi import HTTPException
 
-# 환경 변수 로드
-load_dotenv()
+# GPT Worker의 URL을 환경 변수에서 가져옴
+GPT_WORKER_URL = os.getenv("GPT_WORKER_URL", "http://gpt-worker:9000/generate/")
 
-# OpenAI API 클라이언트 생성
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-async def generate_text(chat_request: ChatRequest) -> ChatResponse:
+async def generate_text(chat_request: ChatRequest) -> dict:
     try:
-        
-        response = client.chat.completions.create(
-            model="gpt-4",  # gpt-4 또는 gpt-3.5-turbo
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},  # 시스템 메시지
-                {"role": "user", "content": chat_request.prompt},               # 사용자 메시지
-            ],
-            max_tokens=chat_request.max_tokens,
-            temperature=chat_request.temperature,
-        )
+        payload = {
+            "prompt": chat_request.prompt,
+            "max_tokens": chat_request.max_tokens,
+            "temperature": chat_request.temperature
+        }
 
-        # 응답 데이터 변환
-        response_text = response.choices[0].message.content
-      
+        # GPT Worker API 호출
+        response = requests.post(GPT_WORKER_URL, json=payload)
 
-        return ChatResponse(response=response_text)
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"GPT Worker 호출 실패: {response.text}")
+
+        return response.json()
+
     except Exception as e:
-        
-        raise ValueError(f"OpenAI API 호출 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"OpenAI API 호출 실패: {str(e)}")
