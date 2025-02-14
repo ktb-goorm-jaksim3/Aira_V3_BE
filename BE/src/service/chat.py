@@ -1,32 +1,34 @@
-from models.chat import ChatRequest, ChatResponse
-import openai
 import os
-from dotenv import load_dotenv
+import httpx
+from models.chat import ChatRequest
+from fastapi import HTTPException
 
-# 환경 변수 로드
-load_dotenv()
+# Retrieve GPT Worker URL from environment variables
+GPT_WORKER_URL = os.getenv("GPT_WORKER_URL", "http://gpt-worker:9000/generate/")
 
-# OpenAI API 클라이언트 생성
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-async def generate_text(chat_request: ChatRequest) -> ChatResponse:
+async def generate_text(chat_request: ChatRequest) -> dict:
+    payload = {
+        "prompt": chat_request.prompt,
+        "max_tokens": chat_request.max_tokens,
+        "temperature": chat_request.temperature
+    }
+    
     try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(GPT_WORKER_URL, json=payload)
         
-        response = client.chat.completions.create(
-            model="gpt-4",  # gpt-4 또는 gpt-3.5-turbo
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},  # 시스템 메시지
-                {"role": "user", "content": chat_request.prompt},               # 사용자 메시지
-            ],
-            max_tokens=chat_request.max_tokens,
-            temperature=chat_request.temperature,
-        )
-
-        # 응답 데이터 변환
-        response_text = response.choices[0].message.content
-      
-
-        return ChatResponse(response=response_text)
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"GPT Worker 호출 실패: {response.text}")
+        # The GPT worker returns {"request_id": "...", "result": <gpt_response>}
+        # Transform this so that the backend returns an object with key "response"
+        worker_data = response.json()
+        try:
+            chat_text = worker_data["result"]["choices"][0]["message"]["content"]
+        except Exception as parse_err:
+            raise HTTPException(status_code=500, detail=f"응답 파싱 실패: {parse_err}")
+        
+        # Return a simplified response
+        return {"response": chat_text}
+    
     except Exception as e:
-        
-        raise ValueError(f"OpenAI API 호출 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"OpenAI API 호출 실패: {str(e)}")
