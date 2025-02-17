@@ -7,7 +7,7 @@ from db.database import init_db
 import os
 
 # 환경변수 로드
-load_dotenv(os.getenv("ENV_FILE",".env"))
+load_dotenv(os.getenv("ENV_FILE"))
 
 # Database 초기화
 init_db()

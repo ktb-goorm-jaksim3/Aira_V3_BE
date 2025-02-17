@@ -4,7 +4,7 @@ from models.chat import ChatRequest
 from fastapi import HTTPException
 
 # Retrieve GPT Worker URL from environment variables
-GPT_WORKER_URL = os.getenv("GPT_WORKER_URL", "http://gpt-worker:9000/generate/")
+GPT_WORKER_URL = os.getenv("GPT_WORKER_URL")
 
 async def generate_text(chat_request: ChatRequest) -> dict:
     payload = {
