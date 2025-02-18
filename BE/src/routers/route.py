@@ -15,6 +15,7 @@ from jose import jwt, JWTError
 from schemas.answer_schema import AnswerCreate, AnswerResponse
 from dotenv import load_dotenv
 from models.user import User  # User 모델 임포트 추가
+import requests
 
 # .env 파일 로드
 load_dotenv()
@@ -30,13 +31,13 @@ router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 @router.post("/generate/", response_model=ChatResponse)
-async def generate_response(chat_request: ChatRequest):
+async def generate_endpoint(chat_request: ChatRequest):
     try:
-        # ChatRequest 객체를 바로 전달하도록 수정
-        response = await generate_text(chat_request)  # chat_request 전체 객체 전달
+        # GPT Worker로 요청을 전달
+        response = await generate_text(chat_request)
         return response
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"OpenAI API 호출 실패: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"GPT Worker 호출 실패: {str(e)}")
 
 
 @router.post("/auth/register", response_model=user_schema.UserResponse)
@@ -87,6 +88,30 @@ async def submit_answers(answer: AnswerCreate, db: Session = Depends(get_db), to
         raise HTTPException(status_code=401, detail="Invalid credentials")  # 사용자 정보가 없을 경우
     return save_answers(answer, db, user.id)  # 사용자 ID를 사용하여 답변 저장
 
+@router.get("/result/{request_id}")
+async def get_result(request_id: str):
+    response = sqs.receive_message(
+        QueueUrl=RESPONSE_QUEUE_URL,
+        MaxNumberOfMessages=1,
+        WaitTimeSeconds=5
+    )
+
+    if "Messages" in response:
+        for message in response["Messages"]:
+            body = json.loads(message["Body"])
+
+            if body["request_id"] == request_id:
+                result = body["result"]
+
+                # 처리된 메시지는 삭제
+                sqs.delete_message(
+                    QueueUrl=RESPONSE_QUEUE_URL,
+                    ReceiptHandle=message["ReceiptHandle"]
+                )
+
+                return {"status": "completed", "result": result}
+
+    return {"status": "processing", "message": "Request is still being processed"}
 
 # 라우터 등록
 app.include_router(router)

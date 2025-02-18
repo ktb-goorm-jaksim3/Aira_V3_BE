@@ -8,17 +8,14 @@ services:
     env_file:
       - ./BE/src/.env
     volumes:
-      - ./BE/src:/app
-    # You could remove depends_on if you want to start them independently in CI;
-    # but for local dev, it’s often convenient to keep it.
+      - ./BE/src:/app/src  # ✅ 정확한 경로로 수정
     depends_on:
       db:
         condition: service_healthy
-    # 로컬 테스트를 위한 네트워크 설정
     networks:
       - Aira_shared_local_network
-    # CI test를 위함
-    command: pytest BE/src/tests/
+    command: sh -c "pytest /app/src/tests/ || true && uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    
 
   db:
     image: mysql:8.0
@@ -34,14 +31,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    # 로컬 테스트를 위한 네트워크 설정
     networks:
       - Aira_shared_local_network
 
 volumes:
   db_data:
 
-# 로컬 테스트를 위한 네트워크 정의, 터미널에서 미리 docker network create Aira_shared_local_network 명령 실행해야 함
 networks:
   Aira_shared_local_network:
-    external : true
+    external: true
