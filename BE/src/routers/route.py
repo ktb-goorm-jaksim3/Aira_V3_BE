@@ -87,32 +87,6 @@ async def submit_answers(answer: AnswerCreate, db: Session = Depends(get_db), to
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid credentials")  # 사용자 정보가 없을 경우
     return save_answers(answer, db, user.id)  # 사용자 ID를 사용하여 답변 저장
-
-@router.get("/result/{request_id}")
-async def get_result(request_id: str):
-    response = sqs.receive_message(
-        QueueUrl=RESPONSE_QUEUE_URL,
-        MaxNumberOfMessages=1,
-        WaitTimeSeconds=5
-    )
-
-    if "Messages" in response:
-        for message in response["Messages"]:
-            body = json.loads(message["Body"])
-
-            if body["request_id"] == request_id:
-                result = body["result"]
-
-                # 처리된 메시지는 삭제
-                sqs.delete_message(
-                    QueueUrl=RESPONSE_QUEUE_URL,
-                    ReceiptHandle=message["ReceiptHandle"]
-                )
-
-                return {"status": "completed", "result": result}
-
-    return {"status": "processing", "message": "Request is still being processed"}
-
 # 라우터 등록
 app.include_router(router)
 
